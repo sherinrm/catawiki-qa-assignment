@@ -60,7 +60,6 @@ test.describe('Lot page bid history network mocking', () => {
                     body: '{"error":"injected"}',
                 });
             });
-            
         });
 
         await test.step("Open Catawiki's website and search for a lot", async () => {

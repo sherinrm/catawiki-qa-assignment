@@ -14,7 +14,7 @@ test.describe('Search suggest API', () => {
         });
 
         expect(response.status()).toBe(200);
-      
+
         const body = await response.json();
         expect(Array.isArray(body.query_terms)).toBe(true);
         expect(body.query_terms.length).toBeGreaterThan(0);

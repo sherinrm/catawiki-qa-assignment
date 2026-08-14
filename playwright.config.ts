@@ -4,7 +4,6 @@ import { defineConfig, devices } from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration.
  */
 
-
 /**
  * NOTE ON BOT PROTECTION (measured, not assumed):
  *   - Bundled headless Chromium is served an "Access Denied" page. Neither a
@@ -46,7 +45,7 @@ export default defineConfig({
         // Safe to run headless for every project here — see the bot-protection
         // note above for why the chromium project specifically pins `channel: 'chrome'`.
         // headless: process.env.HEADLESS !== 'false',
-        headless: true
+        headless: true,
     },
 
     /* Configure projects for major browsers */
