@@ -41,7 +41,6 @@ test.describe('Lot . bid ', () => {
             await searchResultsPage.openLotWithBids(lotPage);
         });
 
-
         await test.step('Verify the mocked bid amount is rendered', async () => {
             const mockedAmountText = `€${MOCKED_BID_AMOUNT.toLocaleString('en-US')}`;
             await expect(page.getByText(mockedAmountText)).toBeVisible();
@@ -74,7 +73,6 @@ test.describe('Lot . bid ', () => {
         await test.step('Open a lot page that has bids', async () => {
             await searchResultsPage.openLotWithBids(lotPage);
         });
-
 
         // Only proves the page doesn't blank out under the mocked failure. A
         // more precise check against the specific empty/error state the bid
