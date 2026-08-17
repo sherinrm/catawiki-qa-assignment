@@ -10,7 +10,9 @@
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "test": "playwright test",
-        "test:e2e": "playwright test tests/e2e",
+        "test:smoke": "playwright test --grep @smoke",
+        "test:e2e": "playwright test tests/e2e ",
+        "test:e2e-chromium": "playwright test tests/e2e --project=chromium",
         "test:api": "playwright test tests/api",
         "test:headed": "playwright test --headed",
         "report": "playwright show-report"

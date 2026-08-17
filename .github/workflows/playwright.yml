@@ -4,6 +4,17 @@ on:
         branches: [main, master]
     pull_request:
         branches: [main, master]
+    workflow_dispatch:
+        inputs:
+            test_command:
+                description: 'Test command to run'
+                required: true
+                default: 'npm run test:e2e-chromium'
+                type: choice
+                options:
+                    - npm run test:e2e
+                    - npm run test:smoke
+                    - npm run test:e2e-chromium
 jobs:
     test:
         timeout-minutes: 60
@@ -23,7 +34,7 @@ jobs:
               run: npx playwright install --with-deps
             # APIs tests are not executed in CI as bot detection in production environment returns 403 Forbidden. The API tests are executed in local environment only.
             - name: Run Playwright e2etests
-              run: npm run test:e2e
+              run: ${{ github.event.inputs.test_command || 'npm run test:e2e-chromium' }}
             - uses: actions/upload-artifact@v4
               if: ${{ !cancelled() }}
               with:
