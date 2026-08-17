@@ -38,7 +38,7 @@ export class SearchResultsPage extends BasePage {
      * Needed because which lot lands at a given index is nondeterministic,
      * and some lots have zero bids (see LotPage.hasBids).
      */
-    async openLotWithBids(lotPage: LotPage, startIndex = 1, maxAttempts = 5): Promise<void> {
+    async openLotWithBids(lotPage: LotPage, startIndex = 0, maxAttempts = 5): Promise<void> {
         const lotCount = await this.getLotCount();
         const lastIndex = Math.min(startIndex + maxAttempts, lotCount);
 

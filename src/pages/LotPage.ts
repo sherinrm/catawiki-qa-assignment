@@ -15,6 +15,7 @@ export class LotPage extends BasePage {
     readonly signInDialog: Locator;
     readonly placeBidButton: Locator;
     readonly seeAllBidsLink: Locator;
+    readonly bidCount: Locator;
     readonly noBidsText: Locator;
 
     constructor(page: Page) {
@@ -27,6 +28,11 @@ export class LotPage extends BasePage {
         this.bidAmountInput = page.locator('input[data-sentry-component="BidInput"]').first();
         // Text includes a dynamic bid count, e.g. "See all bids (15)".
         this.seeAllBidsLink = page.getByText(/see all bids/i);
+        // "N bid"/"N bids" in the bid-history header — present regardless of
+        // count, unlike seeAllBidsLink which only renders above a threshold.
+        this.bidCount = page
+            .locator('[data-sentry-component="BidHistoryHeaderWithStats"]')
+            .getByText(/^\d+\s+bids?$/i);
         this.noBidsText = page.getByText('No bids placed', { exact: true });
     }
 
@@ -62,21 +68,37 @@ export class LotPage extends BasePage {
     }
 
     /**
-     * Resolves once the lot page shows either the bid-history link or the
-     * "No bids placed" empty state, whichever renders — avoids waiting out a
-     * full timeout against the wrong locator when a lot has zero bids.
+     * Resolves to whether the lot has one or more bids. Races the count
+     * against the empty state instead of waiting out a fixed timeout on
+     * whichever one doesn't apply, and never throws on timeout — a
+     * slow/absent render is treated as "no bids" so callers (e.g.
+     * SearchResultsPage.openLotWithBids) can move on to the next lot
+     * instead of failing outright.
      */
     async hasBids(): Promise<boolean> {
-        const bidsState = this.seeAllBidsLink.or(this.noBidsText);
-        await expect(bidsState.first()).toBeVisible({ timeout: 10_000 });
-        return await this.seeAllBidsLink.isVisible();
+        const appeared = await this.bidCount
+            .or(this.noBidsText)
+            .first()
+            .waitFor({ state: 'visible', timeout: 10_000 })
+            .then(() => true)
+            .catch(() => false);
+
+        if (!appeared) return false;
+
+        const text = await this.bidCount.textContent().catch(() => null);
+        return Number(text?.match(/\d+/)?.[0] ?? 0) > 0;
     }
 
     async openBidHistory(): Promise<void> {
         if (!(await this.hasBids())) {
-            throw new Error('Cannot open bid history: this lot has no bids ("No bids placed").');
+            throw new Error('Cannot open bid history: this lot has no bids.');
         }
-        await this.seeAllBidsLink.click();
+        // seeAllBidsLink only renders once the bid count exceeds what's
+        // shown inline (observed threshold: >3) — below that, the bids are
+        // already visible and there's nothing to expand.
+        if (await this.seeAllBidsLink.isVisible()) {
+            await this.seeAllBidsLink.click();
+        }
     }
 
     async reload(): Promise<void> {
