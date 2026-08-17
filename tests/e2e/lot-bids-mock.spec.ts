@@ -49,7 +49,6 @@ test.describe('Lot . bid ', () => {
             const mockedAmountText = `€${MOCKED_BID_AMOUNT.toLocaleString('en-US')}`;
             await expect(page.getByText(mockedAmountText)).toBeVisible();
         });
-
     });
 
     test('TC-008: [Mock] [Resilience] results still render when the bidding API returns 500', async ({

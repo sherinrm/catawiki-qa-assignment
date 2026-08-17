@@ -19,13 +19,12 @@ test.describe('Search suggest', () => {
         expect(Array.isArray(body.query_terms)).toBe(true);
         expect(body.query_terms.length).toBeGreaterThan(0);
         expect(body.query_terms[0].text.toLowerCase()).toContain('train');
-        
+
         for (const entry of body.query_terms) {
             expect(typeof entry.text, 'each suggestion needs text').toBe('string');
             expect(entry.text.length).toBeGreaterThan(0);
             expect(entry.entity, 'each suggestion needs an entity').toBeTruthy();
             expect(typeof entry.entity.type).toBe('string');
         }
-
     });
 });

@@ -13,7 +13,7 @@ export class HomePage extends BasePage {
 
         // The visible search icon button, used to submit a search without
         // relying on <Enter>, e.g. when the input is empty.
-        this.magnifierButton = page.getByRole('button', { name: 'Search'}).first();
+        this.magnifierButton = page.getByRole('button', { name: 'Search' }).first();
     }
 
     async open(): Promise<void> {
