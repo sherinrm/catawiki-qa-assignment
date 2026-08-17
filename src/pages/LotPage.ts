@@ -38,7 +38,6 @@ export class LotPage extends BasePage {
         await expect(this.favourites).toBeVisible();
     }
 
-
     async getLotDetails(): Promise<LotDetails> {
         await this.verifyLoaded();
         const [lotName, favourites, currentBid] = await Promise.all([
