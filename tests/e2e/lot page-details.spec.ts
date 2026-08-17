@@ -1,8 +1,14 @@
 import { test, expect } from '../../src/fixtures/testFixture';
 import { SEARCH_KEYWORD } from '../../src/data/searchTerm';
 
-test.describe('Search to lot details', () => {
-    test(`TC-001: [LOT] search for "${SEARCH_KEYWORD}" and view the second lot`, async ({
+/*
+Test case TC-001: User flow in the qa assignment
+Search for train keyword , click the second lot in the search results and print lot name, favourites count and current bid.
+*/
+
+
+test.describe('Lot . details', () => {
+    test(`TC-001:[Lot] search for "${SEARCH_KEYWORD}" and view the second lot @smoke`, async ({
         homePage,
         searchResultsPage,
         lotPage,
@@ -30,8 +36,20 @@ test.describe('Search to lot details', () => {
         });
 
         const lotDetails =
-            await test.step("Retrieve the lot's name, favourites counter, and current bid", async () => {
-                return await lotPage.getLotDetails();
+            await test.step("Retrieve the lot's name, favourites counter, and current bid and print the details", async () => {
+                const details = await lotPage.getLotDetails();
+                console.log(
+                    [
+                        '',
+                        'Lot details',
+                        '-----------',
+                        `Name:         ${details.lotName}`,
+                        `Favourites:   ${details.favourites}`,
+                        `Current bid:  ${details.currentBid.currency} ${details.currentBid.amount}`,
+                        '',
+                    ].join('\n'),
+                );
+                return details;
             });
 
         await test.step('Verify that the retrieved lot details are valid', async () => {

@@ -45,7 +45,7 @@ export default defineConfig({
         // Safe to run headless for every project here — see the bot-protection
         // note above for why the chromium project specifically pins `channel: 'chrome'`.
         // headless: process.env.HEADLESS !== 'false',
-        headless: true,
+        headless: process.env.HEADLESS !== 'false',
     },
 
     /* Configure projects for major browsers */
@@ -63,13 +63,13 @@ export default defineConfig({
 
         {
             name: 'firefox',
-            testIgnore: /tests[\\/](api|responsive)[\\/]/,
+            testIgnore: /tests[\\/](api)[\\/]/,
             use: { ...devices['Desktop Firefox'] },
         },
 
         {
             name: 'webkit',
-            testIgnore: /tests[\\/](api|responsive)[\\/]/,
+            testIgnore: /tests[\\/](api)[\\/]/,
             use: { ...devices['Desktop Safari'] },
         },
 

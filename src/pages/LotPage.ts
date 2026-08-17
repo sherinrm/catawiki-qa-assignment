@@ -15,6 +15,7 @@ export class LotPage extends BasePage {
     readonly signInDialog: Locator;
     readonly placeBidButton: Locator;
     readonly seeAllBidsLink: Locator;
+    readonly noBidsText: Locator;
 
     constructor(page: Page) {
         super(page);
@@ -26,6 +27,7 @@ export class LotPage extends BasePage {
         this.bidAmountInput = page.locator('input[data-sentry-component="BidInput"]').first();
         // Text includes a dynamic bid count, e.g. "See all bids (15)".
         this.seeAllBidsLink = page.getByText(/see all bids/i);
+        this.noBidsText = page.getByText('No bids placed', { exact: true });
     }
 
     async verifyLoaded(): Promise<void> {
@@ -59,8 +61,21 @@ export class LotPage extends BasePage {
         await this.placeBidButton.click();
     }
 
+    /**
+     * Resolves once the lot page shows either the bid-history link or the
+     * "No bids placed" empty state, whichever renders — avoids waiting out a
+     * full timeout against the wrong locator when a lot has zero bids.
+     */
+    async hasBids(): Promise<boolean> {
+        const bidsState = this.seeAllBidsLink.or(this.noBidsText);
+        await expect(bidsState.first()).toBeVisible({ timeout: 10_000 });
+        return await this.seeAllBidsLink.isVisible();
+    }
+
     async openBidHistory(): Promise<void> {
-        await expect(this.seeAllBidsLink).toBeVisible();
+        if (!(await this.hasBids())) {
+            throw new Error('Cannot open bid history: this lot has no bids ("No bids placed").');
+        }
         await this.seeAllBidsLink.click();
     }
 

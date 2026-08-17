@@ -27,6 +27,8 @@ npm run test:headed   # explicit headed run (headed is already the default)
 npx playwright test -g "TC-005"   # filter by test case ID or title text
 
 npm run typecheck     # tsc --noEmit
+npm run lint          # eslint .
+npm run lint:fix      # eslint . --fix
 npm run format        # prettier --write .
 npm run format:check  # prettier --check .
 npm run report         # open the last HTML report
@@ -38,7 +40,7 @@ npm run report         # open the last HTML report
 - `src/pages/components/` — reusable UI-fragment logic that isn't a full page (currently just the cookie-consent banner handling).
 - `src/fixtures/testFixture.ts` — the custom `test`/`expect` all specs import; wires up `homePage`, `searchResultsPage`, `lotPage` fixtures.
 - `src/helpers/` — pure, framework-independent logic (money/count parsing, bid calculation). No Playwright imports; unit-testable in isolation.
-- `src/data/` — test data constants (SCREAMING_SNAKE_CASE).
+- `src/data/` — test data constants .
 - `tests/e2e/` vs `tests/api/` — UI-driven flows vs. direct API assertions. Both use the same fixtures/page objects (API tests still need a `homePage.open()` first — see below).
 
 ## Conventions
@@ -59,14 +61,10 @@ npm run report         # open the last HTML report
 
 These aren't oversights — they're workarounds discovered while building this suite against the real, bot-protected production site:
 
-- **`headless: false` and `workers: 1`** in `playwright.config.ts` are deliberate. Akamai/Usercentrics bot detection on catawiki.com blocks headless automated traffic and flags concurrent sessions as bot-like; running headed and serially avoids getting hard-blocked (`Access Denied` / Akamai edge errors). `headless` has a `HEADLESS=true` opt-in for local experimentation — don't flip the CI default without confirming it still works.
+- **`channel: 'chrome'`, not `headless: false`, is what beats bot detection.** Akamai/Usercentrics serves bundled headless Chromium an "Access Denied" page — neither a spoofed user-agent nor `--disable-blink-features=AutomationControlled` changes that — but headless *branded* Chrome (`channel: 'chrome'`, what the `chromium` project pins) and branded Edge pass cleanly, and headless Firefox/WebKit pass with no special handling at all. So `headless` safely defaults to `true` for every project; set `HEADLESS=false` to opt into a visible browser for local debugging. `workers: 1` locally (`2` on CI) separately avoids flagging concurrent sessions as bot-like.
 - **`tests/api/search-suggest-api.spec.ts` uses `page.request`, not the bare `request` fixture.** The suggest API is behind the same bot protection; a request with no prior browser session/cookies gets a 403. `homePage.open()` establishes that session first.
 - **`clickLotByIndex(N)` picks an arbitrary lot from live search results.** This is inherently a bit fragile — it assumes that lot stays live and (for bid-related tests) keeps its bid history — but there's no fixture/mocked catalog to pin against since tests run against production inventory.
 - **`src/pages/*.ts` locators keyed on `data-sentry-component`** (Sentry's auto-injected instrumentation attribute) are a known fragility, used only where no `data-testid` exists on the live site. They could break if the app's Sentry config changes.
-
-## Known limitations
-
-- **ESLint is not installed.** `typescript-eslint` does not yet support this project's TypeScript version (`7.0.2`, TypeScript's native/Go-rewrite line) — it hard-fails at load time. Support for TS 7.1+ is tracked upstream: [typescript-eslint/typescript-eslint#10940](https://github.com/typescript-eslint/typescript-eslint/issues/10940). Revisit once that ships; Prettier is installed and configured in the meantime (`npm run format`).
 
 ## Reports
 

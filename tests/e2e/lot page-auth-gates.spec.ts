@@ -2,8 +2,13 @@ import { test, expect } from '../../src/fixtures/testFixture';
 import { SEARCH_TERMS } from '../../src/data/searchTerm';
 import { calculateNextBidAmount } from '../../src/helpers/bid';
 
-test.describe('Validate auth gate', () => {
-    test('TC-005: [Auth-Gate] prompts anonymous users to sign in and does not alter the favourites counter', async ({
+/*
+Test case TC-005
+Favourite a lot as an anonymous user, verify the sign-in dialog is shown, and confirm the favourites counter is left unchanged.
+*/
+
+test.describe('Lot page - Auth Gate', () => {
+    test('TC-005:[Auth-Gate] prompts anonymous users to sign in and does not alter the favourites counter', async ({
         homePage,
         searchResultsPage,
         lotPage,
@@ -37,6 +42,10 @@ test.describe('Validate auth gate', () => {
         });
     });
 
+    /*
+    Test case TC-006
+    Place a bid as an anonymous user, verify the sign-in dialog is shown, and confirm the current bid is left unchanged.
+    */
     test('TC-006: [Auth-Gate] prompts anonymous users to sign in and does not alter the current bid', async ({
         homePage,
         searchResultsPage,

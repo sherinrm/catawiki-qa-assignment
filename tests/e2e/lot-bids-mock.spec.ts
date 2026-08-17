@@ -5,14 +5,20 @@ import { SEARCH_KEYWORD, MOCK_TEST_KEYWORD } from '../../src/data/searchTerm';
 // endpoint, so mocking the bids API is verified against the "See all bids"
 // history list instead, which is populated client-side from this response.
 const MOCKED_BID_AMOUNT = 999_999;
+/* 
+Test case TC-007:
 
-test.describe('Lot page bid history network mocking', () => {
-    test('TC-007: [Mock] renders exactly the forced bid amount in bid histroy returned by the API', async ({
+ This test intercepts the lot's bids API response (/buyer/api/v3/lots/\*\/bids)" and rewrites the top bid amount to a fixed sentinel value (999_999), then asserts that exact amount (€999,999) shows up in the lot page's "See all bids" history list.
+*/
+test.describe('Lot . bid ', () => {
+    test('TC-007:[Mock] renders exactly the forced bid amount in bid history returned by the API', async ({
         page,
         homePage,
         searchResultsPage,
         lotPage,
     }) => {
+        test.slow();
+
         await test.step('Intercept the lot bids API and force the top bid amount', async () => {
             await page.route('**/buyer/api/v3/lots/*/bids*', async (route) => {
                 const response = await route.fetch();
@@ -31,9 +37,8 @@ test.describe('Lot page bid history network mocking', () => {
             await homePage.searchViaMagnifier(SEARCH_KEYWORD);
         });
 
-        await test.step('Open a lot page', async () => {
-            await searchResultsPage.clickLotByIndex(1);
-            await lotPage.verifyLoaded();
+        await test.step('Open a lot page that has bids', async () => {
+            await searchResultsPage.openLotWithBids(lotPage);
         });
 
         await test.step('Open the bid history list', async () => {
@@ -44,14 +49,17 @@ test.describe('Lot page bid history network mocking', () => {
             const mockedAmountText = `€${MOCKED_BID_AMOUNT.toLocaleString('en-US')}`;
             await expect(page.getByText(mockedAmountText)).toBeVisible();
         });
+
     });
 
-    test('TC-008: [Mock] results still render when the bidding API returns 500', async ({
+    test('TC-008: [Mock] [Resilience] results still render when the bidding API returns 500', async ({
         page,
         homePage,
         searchResultsPage,
         lotPage,
     }) => {
+        test.slow();
+
         await test.step('Intercept the lot bids API and force a 500 response', async () => {
             await page.route('**/buyer/api/v3/bidding/lots*', async (route) => {
                 await route.fulfill({
@@ -67,9 +75,8 @@ test.describe('Lot page bid history network mocking', () => {
             await homePage.searchViaMagnifier(MOCK_TEST_KEYWORD);
         });
 
-        await test.step('Open a lot page', async () => {
-            await searchResultsPage.clickLotByIndex(1);
-            await lotPage.verifyLoaded();
+        await test.step('Open a lot page that has bids', async () => {
+            await searchResultsPage.openLotWithBids(lotPage);
         });
 
         await test.step('Open the bid history list', async () => {
@@ -84,6 +91,5 @@ test.describe('Lot page bid history network mocking', () => {
             await expect(lotPage.heading()).toBeVisible();
             await expect(lotPage.currentBidAmount).toBeVisible();
         });
-        await page.waitForTimeout(10000);
     });
 });
