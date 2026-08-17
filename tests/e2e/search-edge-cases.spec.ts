@@ -1,7 +1,7 @@
 import { test, expect } from '../../src/fixtures/testFixture';
 import { UNIQUE_UNLIKELY_KEYWORDS } from '../../src/data/searchTerm';
 
-test.describe('Search . edge cases', () => {
+test.describe('Search - Edge cases', () => {
     for (const [key, searchTerm] of Object.entries(UNIQUE_UNLIKELY_KEYWORDS)) {
         test(`TC-003: [Search][Edge Case] returns no results for "${key}"`, async ({
             homePage,

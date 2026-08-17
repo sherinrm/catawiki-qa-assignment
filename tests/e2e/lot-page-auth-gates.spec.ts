@@ -8,7 +8,7 @@ Favourite a lot as an anonymous user, verify the sign-in dialog is shown, and co
 */
 
 test.describe('Lot page - Auth Gate', () => {
-    test('TC-005:[Auth-Gate] prompts anonymous users to sign in and does not alter the favourites counter', async ({
+    test('TC-005:[Auth-Gate] prompts anonymous users to sign in and does not alter the favourites counter @smoke', async ({
         homePage,
         searchResultsPage,
         lotPage,

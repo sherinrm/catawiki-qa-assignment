@@ -30,6 +30,8 @@ jobs:
               run: npm run typecheck
             - name: Check formatting
               run: npm run format:check
+            - name: Lint
+              run: npm run lint
             - name: Install Playwright Browsers
               run: npx playwright install --with-deps
             # APIs tests are not executed in CI as bot detection in production environment returns 403 Forbidden. The API tests are executed in local environment only.

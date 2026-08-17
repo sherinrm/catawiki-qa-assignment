@@ -15,7 +15,6 @@ export class LotPage extends BasePage {
     readonly bidAmountInput: Locator;
     readonly signInDialog: Locator;
     readonly placeBidButton: Locator;
-    readonly seeAllBidsLink: Locator;
     readonly bidCount: Locator;
     readonly noBidsText: Locator;
 
@@ -27,10 +26,6 @@ export class LotPage extends BasePage {
         this.signInDialog = page.getByRole('dialog', { name: 'Sign in or create an account' });
         this.placeBidButton = page.getByRole('button', { name: 'Place bid', exact: true }).first();
         this.bidAmountInput = page.locator('input[data-sentry-component="BidInput"]').first();
-        // Text includes a dynamic bid count, e.g. "See all bids (15)".
-        this.seeAllBidsLink = page.getByText(/see all bids/i);
-        // "N bid"/"N bids" in the bid-history header — present regardless of
-        // count, unlike seeAllBidsLink which only renders above a threshold.
         this.bidCount = page
             .locator('[data-sentry-component="BidHistoryHeaderWithStats"]')
             .getByText(/^\d+\s+bids?$/i);
@@ -40,11 +35,9 @@ export class LotPage extends BasePage {
     async verifyLoaded(): Promise<void> {
         await expect(this.heading()).toBeVisible();
         await expect(this.currentBidAmount).toBeVisible();
+        await expect(this.favourites).toBeVisible();
     }
 
-    async getLotName(): Promise<string> {
-        return await this.heading().innerText();
-    }
 
     async getLotDetails(): Promise<LotDetails> {
         await this.verifyLoaded();
@@ -90,18 +83,6 @@ export class LotPage extends BasePage {
             .textContent({ timeout: BID_COUNT_TEXT_TIMEOUT })
             .catch(() => null);
         return Number(text?.match(/\d+/)?.[0] ?? 0) > 0;
-    }
-
-    async openBidHistory(): Promise<void> {
-        if (!(await this.hasBids())) {
-            throw new Error('Cannot open bid history: this lot has no bids.');
-        }
-        // seeAllBidsLink only renders once the bid count exceeds what's
-        // shown inline (observed threshold: >3) — below that, the bids are
-        // already visible and there's nothing to expand.
-        if (await this.seeAllBidsLink.isVisible()) {
-            await this.seeAllBidsLink.click();
-        }
     }
 
     async reload(): Promise<void> {

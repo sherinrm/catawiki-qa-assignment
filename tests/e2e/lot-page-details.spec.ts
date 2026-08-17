@@ -6,7 +6,7 @@ Test case TC-001: User flow in the qa assignment
 Search for train keyword , click the second lot in the search results and print lot name, favourites count and current bid.
 */
 
-test.describe('Lot . details', () => {
+test.describe('Lot page - Details', () => {
     test(`TC-001:[Lot] search for "${SEARCH_KEYWORD}" and view the second lot @smoke`, async ({
         homePage,
         searchResultsPage,
