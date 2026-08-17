@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { dismissConsentIfPresent } from './components/ConsentBanner';
+import { MAGNIFIER_CLICK_TIMEOUT } from '../config/timeouts';
 
 export class HomePage extends BasePage {
     readonly searchInput: Locator;
@@ -41,7 +42,7 @@ export class HomePage extends BasePage {
         for (let attempt = 0; attempt < 2; attempt++) {
             await dismissConsentIfPresent(this.page);
             try {
-                await this.magnifierButton.click({ timeout: 5_000 });
+                await this.magnifierButton.click({ timeout: MAGNIFIER_CLICK_TIMEOUT });
                 return;
             } catch (error) {
                 if (attempt === 1) throw error;

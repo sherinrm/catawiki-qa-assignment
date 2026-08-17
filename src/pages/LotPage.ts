@@ -1,6 +1,7 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { BasePage } from './BasePage';
 import { parseMoney, parseCount, type Money } from '../helpers/parse';
+import { BID_STATE_TIMEOUT, BID_COUNT_TEXT_TIMEOUT } from '../config/timeouts';
 
 export interface LotDetails {
     lotName: string;
@@ -79,13 +80,15 @@ export class LotPage extends BasePage {
         const appeared = await this.bidCount
             .or(this.noBidsText)
             .first()
-            .waitFor({ state: 'visible', timeout: 10_000 })
+            .waitFor({ state: 'visible', timeout: BID_STATE_TIMEOUT })
             .then(() => true)
             .catch(() => false);
 
         if (!appeared) return false;
 
-        const text = await this.bidCount.textContent().catch(() => null);
+        const text = await this.bidCount
+            .textContent({ timeout: BID_COUNT_TEXT_TIMEOUT })
+            .catch(() => null);
         return Number(text?.match(/\d+/)?.[0] ?? 0) > 0;
     }
 
