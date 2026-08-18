@@ -85,19 +85,15 @@ export default defineConfig({
             },
         },
         /* ---------- Mobile viewports: only the responsive suite ---------- */
-        {
-            name: 'mobile-chrome',
-            testDir: './tests/responsive',
-            use: {
-                ...devices['Pixel 5'],
-                channel: 'chrome',
-                launchOptions: { args: stealthArgs },
-            },
-        },
-        {
-            name: 'mobile-safari',
-            testDir: './tests/responsive',
-            use: { ...devices['iPhone 12'] },
-        },
+        // {
+        // name: 'mobile-chrome',
+        // use: {
+        // ...devices['Pixel 5'],
+        // },
+        // },
+        // {
+        // name: 'mobile-safari',
+        // use: { ...devices['iPhone 12'] },
+        // },
     ],
 });

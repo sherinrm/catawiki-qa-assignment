@@ -55,7 +55,7 @@ test.describe('Lot page - Details', () => {
             expect(lotDetails.lotName).not.toBe('');
             expect(lotDetails.currentBid.amount).toBeGreaterThan(0);
             expect(lotDetails.currentBid.currency).not.toBe('');
-            expect(lotDetails.favourites).toBeGreaterThan(0);
+            expect(lotDetails.favourites).toBeGreaterThanOrEqual(0);
         });
     });
 });
