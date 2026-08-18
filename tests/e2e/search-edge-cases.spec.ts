@@ -13,12 +13,12 @@ test.describe('Search - Edge cases', () => {
 
             await test.step(`Search for the "${key}" keyword using the magnifier button`, async () => {
                 await homePage.searchViaMagnifier(searchTerm);
+                await searchResultsPage.verifyLoaded();
             });
 
             await test.step('Verify that the no exact match message and related lots are shown', async () => {
                 await expect(searchResultsPage.heading()).toHaveText(searchTerm);
                 await expect(searchResultsPage.noExactText).toBeVisible();
-                await expect(searchResultsPage.lotLinks.first()).toBeVisible();
             });
         });
     }

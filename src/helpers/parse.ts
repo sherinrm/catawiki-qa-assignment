@@ -6,6 +6,26 @@ export interface Money {
 
 const MONEY_PATTERN = /^(\D+?)\s*([\d.,]+)\s*$/;
 
+/**
+ * Parses a rendered money string into its currency symbol and numeric amount.
+ *
+ * Expects the currency to lead, e.g. `"€ 1,234.56"`, `"$1,200"`, `"€10"`.
+ * Thousands/decimal separators are locale-agnostic: whichever of `,` or `.`
+ * appears last is treated as the decimal point, so both `"1,234.56"` (US) and
+ * `"1.234,56"` (EU) yield `1234.56`.
+ *
+ * The original string is kept on `raw` so a caller can report exactly what the
+ * page displayed, rather than a re-formatted approximation of it.
+ *
+ * @param input - Money text as rendered on the page. Surrounding whitespace is
+ *   trimmed; a trailing-currency format (`"1,20 €"`) is not supported.
+ * @returns The `raw` input, the parsed `amount`, and the trimmed `currency`.
+ * @throws If the string does not match "currency then digits", or the numeric
+ *   part cannot be parsed as a number.
+ *
+ * @example
+ * parseMoney('€ 1.234,56'); // { raw: '€ 1.234,56', amount: 1234.56, currency: '€' }
+ */
 export function parseMoney(input: string): Money {
     const trimmed = input.trim();
     const match = trimmed.match(MONEY_PATTERN);

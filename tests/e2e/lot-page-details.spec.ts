@@ -18,11 +18,11 @@ test.describe('Lot page - Details', () => {
 
         await test.step(`Type "${SEARCH_KEYWORD}" into the search field and click the magnifier button`, async () => {
             await homePage.searchViaMagnifier(SEARCH_KEYWORD);
+            await searchResultsPage.verifyLoaded();
         });
 
         await test.step('Verify that the search results page is open', async () => {
             await expect(searchResultsPage.heading()).toHaveText(SEARCH_KEYWORD);
-            await expect(searchResultsPage.lotLinks.first()).toBeVisible();
             expect(await searchResultsPage.lotLinks.count()).toBeGreaterThan(1);
         });
 

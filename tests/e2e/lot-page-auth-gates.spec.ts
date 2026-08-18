@@ -4,7 +4,7 @@ import { calculateNextBidAmount } from '../../src/helpers/bid';
 
 /*
 Test case TC-005
-Favourite a lot as an anonymous user, verify the sign-in dialog is shown, and confirm the favourites counter is left unchanged.
+Click Favourite a lot as an anonymous user, verify the sign-in dialog is shown, and confirm the favourites counter is left unchanged.
 */
 
 test.describe('Lot page - Auth Gate', () => {

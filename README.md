@@ -43,6 +43,7 @@ CI (`.github/workflows/playwright.yml`) runs on every push/PR to `main`/`master`
 - `src/pages/` — Page Object Model. Every page object extends `BasePage` and implements the abstract `verifyLoaded(): Promise<void>` contract.
 - `src/pages/components/` — reusable UI-fragment logic that isn't a full page (currently just the cookie-consent banner handling).
 - `src/fixtures/testFixture.ts` — the custom `test`/`expect` all specs import; wires up `homePage`, `searchResultsPage`, `lotPage` fixtures.
+- `src/api/` — the HTTP surface of the site under test: request paths, `page.route()` glob patterns, and response type definitions. The API-layer counterpart to `src/pages/`.
 - `src/helpers/` — pure, framework-independent logic (money/count parsing, bid calculation). No Playwright imports; unit-testable in isolation.
 - `src/data/` — test data constants .
 - `tests/e2e/` vs `tests/api/` — UI-driven flows vs. direct API assertions. Both use the same fixtures/page objects (API tests still need a `homePage.open()` first — see below).
