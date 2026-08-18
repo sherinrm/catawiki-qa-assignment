@@ -1,5 +1,6 @@
 import { test, expect } from '../../src/fixtures/testFixture';
 import { SEARCH_KEYWORD, MOCK_TEST_KEYWORD } from '../../src/data/searchTerm';
+import { RoutePatterns } from '../../src/api/endpoints';
 
 // How the lot page's bid data is sourced (measured, not assumed):
 //   - The headline "Current bid" is server-rendered and NOT driven by this
@@ -27,7 +28,7 @@ test.describe('Lot page - Bids', () => {
         test.slow();
 
         await test.step('Intercept the lot bids API and force the top bid amount', async () => {
-            await page.route('**/buyer/api/v3/lots/*/bids*', async (route) => {
+            await page.route(RoutePatterns.lotBids, async (route) => {
                 const response = await route.fetch();
                 const body = await response.json();
 
@@ -88,7 +89,7 @@ test.describe('Lot page - Bids', () => {
             });
 
         await test.step('Force the lot bids API to return 500 and reload the lot', async () => {
-            await page.route('**/buyer/api/v3/lots/*/bids*', async (route) => {
+            await page.route(RoutePatterns.lotBids, async (route) => {
                 interceptedRequests++;
                 await route.fulfill({
                     status: 500,

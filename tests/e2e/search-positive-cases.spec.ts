@@ -16,12 +16,12 @@ test.describe('Search - Positive cases', () => {
 
             await test.step(`Search for "${searchTerm}" using the magnifier button`, async () => {
                 await homePage.searchViaMagnifier(searchTerm);
+                await searchResultsPage.verifyLoaded();
             });
 
             await test.step('Verify that the search results page shows matching lots', async () => {
                 await expect(searchResultsPage.heading()).toHaveText(searchTerm);
-                await expect(searchResultsPage.lotLinks.first()).toBeVisible();
-                expect(await searchResultsPage.lotLinks.count()).toBeGreaterThan(1);
+                expect(await searchResultsPage.getLotCount()).toBeGreaterThan(1);
             });
         });
     }
