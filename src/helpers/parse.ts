@@ -10,9 +10,13 @@ const MONEY_PATTERN = /^(\D+?)\s*([\d.,]+)\s*$/;
  * Parses a rendered money string into its currency symbol and numeric amount.
  *
  * Expects the currency to lead, e.g. `"€ 1,234.56"`, `"$1,200"`, `"€10"`.
- * Thousands/decimal separators are locale-agnostic: whichever of `,` or `.`
- * appears last is treated as the decimal point, so both `"1,234.56"` (US) and
- * `"1.234,56"` (EU) yield `1234.56`.
+ * Thousands/decimal separators are locale-agnostic. When both `,` and `.` are
+ * present, whichever appears last is the decimal point, so `"1,234.56"` (US)
+ * and `"1.234,56"` (EU) both yield `1234.56`. When only one kind of separator
+ * appears the string is ambiguous on its own, and grouping decides: separators
+ * followed by groups of exactly three digits are thousands separators
+ * (`"1,234"` and `"1.234"` both yield `1234`), anything else is a decimal
+ * point (`"1,20"` yields `1.2`).
  *
  * The original string is kept on `raw` so a caller can report exactly what the
  * page displayed, rather than a re-formatted approximation of it.
@@ -65,28 +69,34 @@ export function parseCount(raw: string | null | undefined): number {
     return Number(digits);
 }
 
-// Disambiguates "1,234.56" (US, comma = thousands) from "1.234,56" (EU, dot = thousands)
-// by treating whichever separator appears last as the decimal point.
+// Grouped-thousands notation with no decimal part: a leading group of one to
+// three digits, then one or more groups of exactly three. Prices are not
+// rendered with three decimal places, so "1,234" and "1.234.567" are 1234 and
+// 1234567 — while "1,20" and "0.123" keep their separator as a decimal point.
+const THOUSANDS_ONLY_PATTERN = /^[1-9]\d{0,2}(?:[.,]\d{3})+$/;
+
+// Disambiguates "1,234.56" (US, comma = thousands) from "1.234,56" (EU, dot =
+// thousands) by treating whichever separator appears last as the decimal point.
+// That rule needs both separators to be present; when only one kind appears the
+// string is ambiguous in isolation ("1.234" is 1234 in EU notation and 1.234 in
+// US notation), so the grouping pattern above decides instead.
 function normalizeNumeric(numericPart: string): string {
     const lastComma = numericPart.lastIndexOf(',');
     const lastDot = numericPart.lastIndexOf('.');
 
     if (lastComma !== -1 && lastDot !== -1) {
         return lastComma > lastDot
-            ? numericPart.replace(/\./g, '').replace(',', '.')
+            ? numericPart.replace(/\./g, '').replace(/,/g, '.')
             : numericPart.replace(/,/g, '');
     }
 
-    if (lastComma !== -1) {
-        return numericPart.replace(',', '.');
+    if (lastComma === -1 && lastDot === -1) {
+        return numericPart;
     }
 
-    // No comma present. A valid decimal has at most one dot, so 2+ dots can
-    // only be thousands separators, e.g. "1.234.567" -> "1234567".
-    const dotCount = (numericPart.match(/\./g) ?? []).length;
-    if (dotCount > 1) {
-        return numericPart.replace(/\./g, '');
+    if (THOUSANDS_ONLY_PATTERN.test(numericPart)) {
+        return numericPart.replace(/[.,]/g, '');
     }
 
-    return numericPart;
+    return numericPart.replace(',', '.');
 }

@@ -25,6 +25,7 @@ npm run test:e2e          # tests/e2e only, all browser projects
 npm run test:e2e-chromium # tests/e2e only, chromium project only
 npm run test:smoke        # tests tagged @smoke only
 npm run test:api          # tests/api only (see CI note below)
+npm run test:a11y         # tests/a11y only (axe-core scans, opt-in in CI, see CI note below)
 npm run test:headed       # explicit headed run
 npx playwright test -g "TC-005"   # filter by test case ID or title text
 
@@ -36,9 +37,33 @@ npm run format:check  # prettier --check .
 npm run report         # open the last HTML report
 ```
 
-CI (`.github/workflows/playwright.yml`) runs on every push/PR to `main`/`master`, and can also be triggered manually from the Actions tab (`workflow_dispatch`), where you can pick which of the three `npm run test:*` commands above to run.
+CI (`.github/workflows/playwright.yml`) runs on every push/PR to `main`/`master`, and can also be triggered manually from the Actions tab (`workflow_dispatch`), where you can pick which of the `npm run test:*` commands above to run.
 
 ## Project structure
+
+```
+src/
+├── api/                    # HTTP surface: endpoints, page.route() patterns, response types
+├── config/
+│   └── timeouts.ts          # named, commented Playwright timeout overrides
+├── data/
+│   └── searchTerm.ts        # search-term constants used across specs
+├── fixtures/
+│   └── testFixture.ts       # custom test/expect — wires up homePage/searchResultsPage/lotPage
+├── helpers/                 # pure, framework-free logic (money/count parsing, bid maths)
+└── pages/                   # Page Object Model
+    ├── BasePage.ts           # abstract verifyLoaded() contract, shared goto()/heading()
+    ├── HomePage.ts
+    ├── LotPage.ts
+    ├── SearchResultsPage.ts
+    └── components/
+        └── ConsentBanner.ts  # best-effort cookie-consent dismissal, not a full page
+
+tests/
+├── a11y/   # axe-core accessibility scans — opt-in in CI, see Known quirks below
+├── api/    # direct API assertions — local-only in CI, see Known quirks below
+└── e2e/    # UI-driven journeys, run across chromium/firefox/webkit
+```
 
 - `src/pages/` — Page Object Model. Every page object extends `BasePage` and implements the abstract `verifyLoaded(): Promise<void>` contract.
 - `src/pages/components/` — reusable UI-fragment logic that isn't a full page (currently just the cookie-consent banner handling).
@@ -46,7 +71,7 @@ CI (`.github/workflows/playwright.yml`) runs on every push/PR to `main`/`master`
 - `src/api/` — the HTTP surface of the site under test: request paths, `page.route()` glob patterns, and response type definitions. The API-layer counterpart to `src/pages/`.
 - `src/helpers/` — pure, framework-independent logic (money/count parsing, bid calculation). No Playwright imports; unit-testable in isolation.
 - `src/data/` — test data constants .
-- `tests/e2e/` vs `tests/api/` — UI-driven flows vs. direct API assertions. Both use the same fixtures/page objects (API tests still need a `homePage.open()` first — see below).
+- `tests/e2e/` vs `tests/api/` vs `tests/a11y/` — UI-driven flows, direct API assertions, and axe-core accessibility scans. `tests/a11y/` has its own Playwright project (`accessibility` in `playwright.config.ts`, scoped to it via `testDir`), run with `npm run test:a11y` (`playwright test --project=accessibility`); the `chromium`/`firefox`/`webkit` projects explicitly `testIgnore` that folder so the scan doesn't also run under every browser project. It's opt-in in CI (see [Known quirks](#known-quirks--deliberate-choices)) since it runs against real production content. Both `tests/e2e/` and `tests/api/` use the same fixtures/page objects (API tests still need a `homePage.open()` first — see below).
 
 ## Conventions
 
@@ -62,6 +87,7 @@ CI (`.github/workflows/playwright.yml`) runs on every push/PR to `main`/`master`
     | `[Auth-Gate]` | Anonymous-user auth gating (favourites, bidding)      |
     | `[Mock]`      | Tests using `page.route()` network interception       |
     | `[API]`       | Direct API assertions, no UI interaction beyond setup |
+    | `[A11y]`      | Accessibility scanning via axe-core                   |
 
     Some titles append a second, more specific bracket tag alongside the
     one above, e.g. `[Search][Edge Case]` or `[Mock] [Resilience]`.
@@ -75,6 +101,7 @@ These aren't oversights — they're workarounds discovered while building this s
 - **`channel: 'chrome'`, not `headless: false`, is what beats bot detection.** Akamai/Usercentrics serves bundled headless Chromium an "Access Denied" page — neither a spoofed user-agent nor `--disable-blink-features=AutomationControlled` changes that — but headless _branded_ Chrome (`channel: 'chrome'`, what the `chromium` project pins) and branded Edge pass cleanly, and headless Firefox/WebKit pass with no special handling at all. So `headless` safely defaults to `true` for every project; set `HEADLESS=false` to opt into a visible browser for local debugging. `workers: 1` locally (`2` on CI) separately avoids flagging concurrent sessions as bot-like.
 - **`tests/api/search-suggest-api.spec.ts` uses `page.request`, not the bare `request` fixture.** The suggest API is behind the same bot protection; a request with no prior browser session/cookies gets a 403. `homePage.open()` establishes that session first.
 - **`tests/api/` is not run in CI.** Even with a prior browser session, GitHub Actions' runner IP gets a 403 from the same bot protection (likely IP-reputation/fingerprint-based, not just cookies) where a local run succeeds. The CI workflow only runs `test:e2e*`/`test:smoke`; `npm run test:api` is local-only for now.
+- **`tests/a11y/` is opt-in only (`workflow_dispatch`), never part of the default push/PR gate.** The axe-core scan currently fails against production — it surfaces real violations (ARIA structure, color contrast, nested interactive controls, missing SVG alt text) that are outside this branch's control to fix. Wiring it into the default gate would make CI permanently red for pre-existing site issues, so it's run on demand instead, same reasoning as the `tests/api/` CI exclusion above.
 - **`clickLotByIndex(N)` picks an arbitrary lot from live search results.** This is inherently a bit fragile — it assumes that lot stays live and (for bid-related tests) keeps its bid history — but there's no fixture/mocked catalog to pin against since tests run against production inventory.
 - **`src/pages/*.ts` locators keyed on `data-sentry-component`** (Sentry's auto-injected instrumentation attribute) are a known fragility, used only where no `data-testid` exists on the live site. They could break if the app's Sentry config changes.
 
