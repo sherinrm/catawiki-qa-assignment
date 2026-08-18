@@ -52,6 +52,7 @@ export default defineConfig({
     projects: [
         {
             name: 'chromium',
+            testIgnore: /tests[\\/](a11y)[\\/]/,
             use: {
                 ...devices['Desktop Chrome'],
                 channel: 'chrome',
@@ -63,41 +64,25 @@ export default defineConfig({
 
         {
             name: 'firefox',
-            testIgnore: /tests[\\/](api)[\\/]/,
+            testIgnore: /tests[\\/](api|a11y)[\\/]/,
             use: { ...devices['Desktop Firefox'] },
         },
 
         {
             name: 'webkit',
-            testIgnore: /tests[\\/](api)[\\/]/,
+            testIgnore: /tests[\\/](api|a11y)[\\/]/,
             use: { ...devices['Desktop Safari'] },
         },
-
-        /* Test against mobile viewports. */
-        // {
-        //   name: 'Mobile Chrome',
-        //   use: { ...devices['Pixel 5'] },
-        // },
-        // {
-        //   name: 'Mobile Safari',
-        //   use: { ...devices['iPhone 12'] },
-        // },
-
-        /* Test against branded browsers. */
-        // {
-        //   name: 'Microsoft Edge',
-        //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-        // },
-        // {
-        //   name: 'Google Chrome',
-        //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-        // },
+        /* ---------- Accessibility: axe-core scans + keyboard/focus/ARIA specs ----------
+         * Needs a real, bot-check-passing browser, same reasoning as chromium above. */
+        {
+            name: 'accessibility',
+            testDir: './tests/a11y',
+            use: {
+                ...devices['Desktop Chrome'],
+                channel: 'chrome',
+                launchOptions: { args: stealthArgs },
+            },
+        },
     ],
-
-    /* Run your local dev server before starting the tests */
-    // webServer: {
-    //   command: 'npm run start',
-    //   url: 'http://localhost:3000',
-    //   reuseExistingServer: !process.env.CI,
-    // },
 });
