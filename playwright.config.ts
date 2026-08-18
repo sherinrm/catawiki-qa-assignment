@@ -84,5 +84,20 @@ export default defineConfig({
                 launchOptions: { args: stealthArgs },
             },
         },
+        /* ---------- Mobile viewports: only the responsive suite ---------- */
+        {
+            name: 'mobile-chrome',
+            testDir: './tests/responsive',
+            use: {
+                ...devices['Pixel 5'],
+                channel: 'chrome',
+                launchOptions: { args: stealthArgs },
+            },
+        },
+        {
+            name: 'mobile-safari',
+            testDir: './tests/responsive',
+            use: { ...devices['iPhone 12'] },
+        },
     ],
 });
