@@ -14,17 +14,13 @@
 
 ## 1. Introduction
 
-The assignment asked for the Catawiki search-to-lot journey to be automated, and for additional
-test cases — deliberately not similar in implementation — designed from exploratory testing of the
-site.
-
-This report describes what was delivered: a Playwright + TypeScript test suite of **10 test cases
+This report describes what is delivered: a Playwright + TypeScript test suite of **10 test cases
 (13 executable tests, 35 scheduled runs)** covering the required scenario plus search behaviour,
 anonymous-user authorisation gating, network mocking, fault injection, the API layer, and
 accessibility. The suite is built on a Page Object Model with typed fixtures and
 helpers, and is wired into GitHub Actions with static quality gates ahead of any browser launch.
 
-**The constraint that shaped every design decision:** there is no staging environment, no seeded
+**The constraints** there is no staging environment, no seeded
 test data, and no test account. Every test runs against live production, and nothing may mutate
 real auction data. Three consequences follow, and they explain most of the choices in this report:
 
@@ -90,25 +86,6 @@ range rather than ten variations of one idea.
 | TC-009 | API                | Direct endpoint contract assertions | Call the search-suggest endpoint directly and assert the contract: HTTP 200, a non-empty `query_terms` array, the first suggestion matching the query, and every entry carrying non-empty text plus an entity with a string type. |
 | TC-010 | Accessibility      | Automated axe-core scan             | Scan the homepage against WCAG 2.0 / 2.1 Level A and AA rules and assert zero violations, reporting each violation with its rule ID, impact and affected node count.                                                              |
 
-### Notes on coverage
-
-- **TC-002 and TC-003 are data-driven.** Each generates one Playwright test per data row (three
-  search terms, two unlikely keywords), so extending coverage to a new category is a one-line data
-  change rather than a new test. Ten test case IDs therefore produce **13 executable tests**.
-- **TC-005 and TC-006 assert two distinct claims.** "The sign-in dialog appeared" and "the
-  underlying value did not change" are different guarantees, and only the second one proves the gate
-  actually held. Capturing the before-state, acting, then re-reading it costs more than checking for
-  a dialog, and is the point of the test.
-- **TC-007 and TC-008 are deliberately opposite.** Building them established — by measurement, not
-  assumption — that the lot's bid-history block is server-rendered first and then refreshed
-  client-side. TC-007 proves the UI reflects the API response; TC-008 proves a failed refresh does
-  not wipe the data already on screen, guarding against the common "error response overwrites good
-  state" regression. TC-008 additionally asserts the intercept fired, so it can never pass
-  vacuously against a page that stopped calling the endpoint.
-- **TC-010 currently reports real violations** on the production homepage (ARIA structure, colour
-  contrast, nested interactive controls, missing accessible text on SVGs). These are pre-existing
-  site issues, so the scan is opt-in in CI rather than a default gate.
-
 ### Execution matrix
 
 | Playwright project          | Tests       | Scope                           |
@@ -121,29 +98,9 @@ range rather than ten variations of one idea.
 
 ---
 
-## 4. Test automation framework
+## 4. Design decisions
 
-### Structure
-
-```
-src/
-├── api/          HTTP surface — endpoint paths, route-mock patterns, response types
-├── config/       named timeout constants, each with its rationale
-├── data/         test data as typed lookup tables
-├── fixtures/     custom test/expect — injects the page objects
-├── helpers/      pure, framework-free logic (money parsing, bid maths)
-└── pages/        Page Object Model
-    └── components/   reusable UI fragments (cookie-consent banner)
-
-tests/
-├── a11y/         accessibility scans
-├── api/          direct API assertions
-└── e2e/          UI-driven journeys
-```
-
-### Design decisions
-
-**Page Object Model with an enforced load contract.** `BasePage` provides shared navigation
+**Page Object Model .** Seperate class is created for each Page which extends `BasePage` provides shared navigation
 (`goto`, `goBack`) and declares an abstract `verifyLoaded(): Promise<void>` that every
 page object must implement.
 
@@ -187,7 +144,7 @@ rather than a review comment. ESLint and Prettier enforce style on top.
 change. Locale and timezone are pinned to `en-GB` / `Europe/Amsterdam` for deterministic date and
 currency rendering.
 
-**Bot protection — a measured finding.** Bundled headless Chromium is served an "Access Denied"
+**Bot protection .** Bundled headless Chromium is served an "Access Denied"
 page, and neither a spoofed user-agent nor automation-flag suppression changes that. Headless
 _branded_ Chrome passes cleanly, as do headless Firefox and WebKit. The Chromium project therefore
 pins `channel: 'chrome'`, and local runs use a single worker so concurrent sessions are not flagged
@@ -242,7 +199,7 @@ environment:
 
 ---
 
-## 7. Next steps
+## 7. Proposed additional tests.
 
 ### 7.1 Additional scenarios for the test suite
 
@@ -265,7 +222,7 @@ integrity; **P1** = core journey degraded but usable; **P2** = cosmetic or low-t
 |                        | Sorting by relevance, time remaining and recently added                                        | P1       |
 |                        | Pagination and load-more with no duplicated or skipped lots                                    | P1       |
 |                        | Suggest dropdown UI renders, is keyboard-navigable and clicks through                          | P1       |
-| **Seller & curation**  | Seller submits an item for sale                                                                | **P0**   |
+| **Seller & curation**  | Seller submits a lot for sale                                                                  | **P0**   |
 |                        | Expert approve / reject / request-more-info state machine; a rejected lot never becomes public | **P0**   |
 | **Localisation**       | Currency switch re-renders amounts with no double conversion                                   | **P0**   |
 |                        | Language switch changes copy, date and price formatting                                        | P1       |
